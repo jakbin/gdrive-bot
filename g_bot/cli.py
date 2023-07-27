@@ -49,7 +49,7 @@ def main(argv = None):
 		file_name = os.path.basename(args.filename)
 		return upload_file(access_token, args.filename, file_name, folder_id)
 	elif args.command == "d":
-		file_name = os.path.basename(args.filename)
+		file_name = os.path.basename(args.url)
 		return download(args.url, access_token, folder_id)
 	elif args.version:
 		return print(__version__)
