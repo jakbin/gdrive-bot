@@ -1,7 +1,11 @@
 # gdrive-bot
 
-Upload files to your gdrive with your gdrive bot
+Upload files to your gdrive with your gdrive bot without using google-api-python-client.
 
+ [![Publish package](https://github.com/jakbin/gdrive-bot/actions/workflows/publish.yml/badge.svg)](https://github.com/jakbin/gdrive-bot/actions/workflows/publish.yml)
+ [![PyPI version](https://badge.fury.io/py/gdrive-bot.svg)](https://pypi.org/project/gdrive-bot/)
+ [![Downloads](https://pepy.tech/badge/gdrive-bot/month)](https://pepy.tech/project/gdrive-bot)
+ [![Downloads](https://static.pepy.tech/personalized-badge/gdrive-bot?period=total&units=international_system&left_color=green&right_color=blue&left_text=Total%20Downloads)](https://pepy.tech/project/gdrive-bot)
  ![GitHub Contributors](https://img.shields.io/github/contributors/jakbin/gdrive-bot)
  ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/jakbin/gdrive-bot)
  ![GitHub last commit](https://img.shields.io/github/last-commit/jakbin/gdrive-bot)
