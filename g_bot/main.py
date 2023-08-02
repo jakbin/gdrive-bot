@@ -42,7 +42,7 @@ def setup():
     if access_token != '':
         config.set('GDRIVE', 'access_token', access_token)
 
-    folder_id = input("Enter your channel name or chat id with '-' : ")
+    folder_id = input("Enter google drive folder id : ")
     if folder_id != '':
         config.set('GDRIVE', 'folder_id', folder_id)
 
