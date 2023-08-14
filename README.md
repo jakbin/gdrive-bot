@@ -29,3 +29,15 @@ g-bot reset               # reset to default your gdrive credentials
 g-bot up {file_name}      # upload gdrive channel or group
 g-bot d {url}             # download and upload file to your gdrive
 ```
+
+# API
+
+The g-bot client is also usable through an API (for test integration, automation, etc)
+
+### g_bot.main.upload_file(access_token:str, filename:str, filedirectory:str, folder_id: str = None)
+
+```py
+from g_bot.main import upload_file
+
+upload_file(access_token:str, filename:str, filedirectory:str, folder_id: str = None)
+```
