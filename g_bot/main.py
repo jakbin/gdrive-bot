@@ -4,10 +4,7 @@ import json
 import urllib3
 import requests
 import collections
-import configparser
 from tqdm import tqdm
-from pathlib import Path
-from shutil import copy2
 import requests_toolbelt
 import urllib.parse as urlparse
 from requests.exceptions import JSONDecodeError
@@ -16,49 +13,9 @@ from requests import get, ConnectionError, head
 
 urllib3.disable_warnings()
 
-base_dir = os.path.dirname(os.path.realpath(__file__))
-config = os.path.join(base_dir, 'config.ini')
-
-home_path = Path.home()
-if os.path.isfile(os.path.join(home_path, ".config/g-bot/config.ini")):
-    config_file = os.path.join(home_path, ".config/g-bot/config.ini")
-else:
-    if not os.path.isdir(os.path.join(home_path, '.config/g-bot')):
-        os.mkdir(os.path.join(home_path, '.config/g-bot'))
-    copy2(config,os.path.join(home_path, ".config/g-bot"))
-    config_file = os.path.join(home_path, ".config/g-bot/config.ini")
-
-config = configparser.ConfigParser()
-config.read(config_file)
-
 class ProgressBar(tqdm):
     def update_to(self, n: int) -> None:
         self.update(n - self.n)
-
-def setup():
-    print('If you did not want to change anyone, just press enter.')
-
-    access_token = input("Enter your GDRIVE api access token  : ")
-    if access_token != '':
-        config.set('GDRIVE', 'access_token', access_token)
-
-    folder_id = input("Enter google drive folder id : ")
-    if folder_id != '':
-        config.set('GDRIVE', 'folder_id', folder_id)
-
-    with open(config_file, 'w') as configfile:
-        config.write(configfile)
-
-    print("Setup complete!")
-
-def reset():
-    config.set('GDRIVE', 'folder_id', 'xxxxxxxxxxxxx')
-    config.set('GDRIVE', 'access_token', '1234567890xxxxxxx')
-
-    with open(config_file, 'w') as configfile:
-        config.write(configfile)
-
-    print("Config file has been reset to default!") 
 
 def upload_file(access_token:str, filename:str, filedirectory:str, folder_id: str = None):
 

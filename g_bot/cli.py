@@ -1,11 +1,25 @@
 import os
 import argparse
 import configparser
+from pathlib import Path
+from shutil import copy2
 
 from g_bot import __version__
-from g_bot.main import setup, reset, upload_file, download, config_file
+from g_bot.main import upload_file, download
 
 package_name = "g-bot"
+
+base_dir = os.path.dirname(os.path.realpath(__file__))
+config = os.path.join(base_dir, 'config.ini')
+
+home_path = Path.home()
+if os.path.isfile(os.path.join(home_path, ".config/g-bot/config.ini")):
+    config_file = os.path.join(home_path, ".config/g-bot/config.ini")
+else:
+    if not os.path.isdir(os.path.join(home_path, '.config/g-bot')):
+        os.mkdir(os.path.join(home_path, '.config/g-bot'))
+    copy2(config,os.path.join(home_path, ".config/g-bot"))
+    config_file = os.path.join(home_path, ".config/g-bot/config.ini")
 
 config = configparser.ConfigParser()
 config.read(config_file)
@@ -13,6 +27,31 @@ access_token = config['GDRIVE']['access_token']
 folder_id = config["GDRIVE"]['folder_id']
 if folder_id == 'xxxxxxxxxxxxx':
 	folder_id = None
+
+def setup():
+    print('If you did not want to change anyone, just press enter.')
+
+    access_token = input("Enter your GDRIVE api access token  : ")
+    if access_token != '':
+        config.set('GDRIVE', 'access_token', access_token)
+
+    folder_id = input("Enter your channel name or chat id with '-' : ")
+    if folder_id != '':
+        config.set('GDRIVE', 'folder_id', folder_id)
+
+    with open(config_file, 'w') as configfile:
+        config.write(configfile)
+
+    print("Setup complete!")
+
+def reset():
+    config.set('GDRIVE', 'folder_id', 'xxxxxxxxxxxxx')
+    config.set('GDRIVE', 'access_token', '1234567890xxxxxxx')
+
+    with open(config_file, 'w') as configfile:
+        config.write(configfile)
+
+    print("Config file has been reset to default!")
 
 example_uses = '''example:
    g-bot setup
