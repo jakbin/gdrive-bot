@@ -17,49 +17,70 @@ class ProgressBar(tqdm):
     def update_to(self, n: int) -> None:
         self.update(n - self.n)
 
+
+def  verify_token(access_token:str):
+
+    api_endpoint = 'https://www.googleapis.com/drive/v3/about'
+    headers = {
+        'Authorization': f'Bearer {access_token}'
+    }
+    # Set up the query parameters
+    params = {
+        'fields': 'user'
+    }
+    response = requests.get(api_endpoint, headers=headers, params=params)
+    if response.status_code == 200:
+        print("Access token is valid.")
+        return True
+    else:
+        print("Error : Access token is not valid.")
+        return False
+
+
 def upload_file(access_token:str, filename:str, filedirectory:str, folder_id: str = None):
 
-    if folder_id == None:
-        metadata = {
-            "name": filename,
-            "parents": [folder_id]
-        }
-    else:
-        metadata = {
-            "name": filename,
-            "parents": [folder_id]
-        }
+    if verify_token(access_token):
+        if folder_id == None:
+            metadata = {
+                "name": filename,
+                "parents": [folder_id]
+            }
+        else:
+            metadata = {
+                "name": filename,
+                "parents": [folder_id]
+            }
 
-    session = requests.session()
+        session = requests.session()
 
-    with open(filedirectory, "rb") as fp:
-        files = collections.OrderedDict(data=("metadata", json.dumps(metadata), "application/json"), file=fp)
-        encoder = requests_toolbelt.MultipartEncoder(files)
-        with ProgressBar(
-            total=encoder.len,
-            unit="B",
-            unit_scale=True,
-            unit_divisor=1024,
-            miniters=1,
-            file=sys.stdout,
-        ) as bar:
-            monitor = requests_toolbelt.MultipartEncoderMonitor(
-                encoder, lambda monitor: bar.update_to(monitor.bytes_read)
-            )
+        with open(filedirectory, "rb") as fp:
+            files = collections.OrderedDict(data=("metadata", json.dumps(metadata), "application/json"), file=fp)
+            encoder = requests_toolbelt.MultipartEncoder(files)
+            with ProgressBar(
+                total=encoder.len,
+                unit="B",
+                unit_scale=True,
+                unit_divisor=1024,
+                miniters=1,
+                file=sys.stdout,
+            ) as bar:
+                monitor = requests_toolbelt.MultipartEncoderMonitor(
+                    encoder, lambda monitor: bar.update_to(monitor.bytes_read)
+                )
 
-            r = session.post(
-                "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true",
-                data=monitor,
-                allow_redirects=False,
-                json=metadata,
-                headers={"Authorization": "Bearer " + access_token, "Content-Type": monitor.content_type},
-            )
+                r = session.post(
+                    "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true",
+                    data=monitor,
+                    allow_redirects=False,
+                    json=metadata,
+                    headers={"Authorization": "Bearer " + access_token, "Content-Type": monitor.content_type},
+                )
 
-    try:
-        resp = r.json()
-        print(resp)
-    except JSONDecodeError:
-        sys.exit(r.text)
+        try:
+            resp = r.json()
+            print(resp)
+        except JSONDecodeError:
+            sys.exit(r.text)
 
 
 def downloader(url:str, file_name:str):
