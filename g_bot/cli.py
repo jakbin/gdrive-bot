@@ -63,7 +63,7 @@ def main(argv = None):
 	parser = argparse.ArgumentParser(prog=package_name, description="upload your files to your group or channel", epilog=example_uses, formatter_class=argparse.RawDescriptionHelpFormatter)
 	subparsers = parser.add_subparsers(dest="command")
 
-	setup_parser = subparsers.add_parser("setup", help="setup your gdrivr credentials")
+	setup_parser = subparsers.add_parser("setup", help="setup your gdrive credentials")
 
 	reset_parser = subparsers.add_parser("reset", help="reset to default your gdrivr credentials")
 

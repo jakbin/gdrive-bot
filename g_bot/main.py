@@ -30,57 +30,93 @@ def  verify_token(access_token:str):
     }
     response = requests.get(api_endpoint, headers=headers, params=params)
     if response.status_code == 200:
-        print("Access token is valid.")
         return True
     else:
-        print("Error : Access token is not valid.")
         return False
 
 
-def upload_file(access_token:str, filename:str, filedirectory:str, folder_id: str = None):
+def get_drive_storage(access_token: str) -> int:
+    api_endpoint = 'https://www.googleapis.com/drive/v3/about'
+    headers = {
+        'Authorization': f'Bearer {access_token}'
+    }
+    params = {
+        'fields': 'storageQuota'
+    }
+    response = requests.get(api_endpoint, headers=headers, params=params)
 
+    if response.status_code == 200:
+        storage_info = response.json().get('storageQuota', {})
+        used_storage = storage_info.get('usage', 0)
+        total_storage = storage_info.get('limit', 0)
+        print(total_storage," ", used_storage)
+        available_storage = int(total_storage) - int(used_storage)
+        print(available_storage)
+        return available_storage
+    else:
+        return False
+
+
+def upload_file(access_token: str, filename: str, filedirectory: str, folder_id: str = None) -> bool:
     if verify_token(access_token):
-        if folder_id == None:
-            metadata = {
-                "name": filename,
-                "parents": [folder_id]
-            }
+        # Check available storage in Google Drive
+        available_storage = get_drive_storage(access_token)
+
+        if available_storage == False:
+            print("Error: Unable to retrieve storage information.")
+            return False
+
+        # Get the file size
+        file_size = os.path.getsize(filedirectory)
+
+        # Check if available storage is more than file size
+        if available_storage >= file_size:
+        
+            if folder_id == None:
+                metadata = {
+                    "name": filename
+                }
+            else:
+                metadata = {
+                    "name": filename,
+                    "parents": [folder_id]
+                }
+
+            session = requests.session()
+
+            with open(filedirectory, "rb") as fp:
+                files = collections.OrderedDict(data=("metadata", json.dumps(metadata), "application/json"), file=fp)
+                encoder = requests_toolbelt.MultipartEncoder(files)
+                with ProgressBar(
+                    total=encoder.len,
+                    unit="B",
+                    unit_scale=True,
+                    unit_divisor=1024,
+                    miniters=1,
+                    file=sys.stdout,
+                ) as bar:
+                    monitor = requests_toolbelt.MultipartEncoderMonitor(
+                        encoder, lambda monitor: bar.update_to(monitor.bytes_read)
+                    )
+
+                    r = session.post(
+                        "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true",
+                        data=monitor,
+                        allow_redirects=False,
+                        json=metadata,
+                        headers={"Authorization": "Bearer " + access_token, "Content-Type": monitor.content_type},
+                    )
+
+            try:
+                resp = r.json()
+                print(resp)
+            except JSONDecodeError:
+                sys.exit(r.text)
         else:
-            metadata = {
-                "name": filename,
-                "parents": [folder_id]
-            }
-
-        session = requests.session()
-
-        with open(filedirectory, "rb") as fp:
-            files = collections.OrderedDict(data=("metadata", json.dumps(metadata), "application/json"), file=fp)
-            encoder = requests_toolbelt.MultipartEncoder(files)
-            with ProgressBar(
-                total=encoder.len,
-                unit="B",
-                unit_scale=True,
-                unit_divisor=1024,
-                miniters=1,
-                file=sys.stdout,
-            ) as bar:
-                monitor = requests_toolbelt.MultipartEncoderMonitor(
-                    encoder, lambda monitor: bar.update_to(monitor.bytes_read)
-                )
-
-                r = session.post(
-                    "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true",
-                    data=monitor,
-                    allow_redirects=False,
-                    json=metadata,
-                    headers={"Authorization": "Bearer " + access_token, "Content-Type": monitor.content_type},
-                )
-
-        try:
-            resp = r.json()
-            print(resp)
-        except JSONDecodeError:
-            sys.exit(r.text)
+            print("Error: Insufficient storage space in Google Drive.")
+            return False
+    else:
+        print("Error : Access token is not valid.")
 
 
 def downloader(url:str, file_name:str):
